@@ -50,7 +50,11 @@ def backtest_ma(df: pd.DataFrame, fast: int = 5, slow: int = 20,
         prev = df.iloc[i - 1]
         curr = df.iloc[i]
         price = curr['close']
-        dt = curr['datetime'].strftime('%Y-%m-%d') if pd.notna(curr.get('datetime')) else str(i)
+        dt_val = curr.get('datetime')
+        if dt_val and pd.notna(dt_val):
+            dt = pd.to_datetime(dt_val).strftime('%Y-%m-%d') if not isinstance(dt_val, str) else str(dt_val)[:10]
+        else:
+            dt = str(i)
 
         # 金叉买入
         if prev[f'MA{fast}'] <= prev[f'MA{slow}'] and curr[f'MA{fast}'] > curr[f'MA{slow}'] and not holding:
@@ -82,7 +86,10 @@ def backtest_ma(df: pd.DataFrame, fast: int = 5, slow: int = 20,
     # 统计
     total_return = (capital / initial_capital - 1) * 100
     buy_hold_return = (df.iloc[-1]['close'] / df.iloc[0]['close'] - 1) * 100
-    n_days = (df['datetime'].iloc[-1] - df['datetime'].iloc[0]).days if 'datetime' in df.columns else len(df)
+    if 'datetime' in df.columns:
+        n_days = (pd.to_datetime(df['datetime'].iloc[-1]) - pd.to_datetime(df['datetime'].iloc[0])).days
+    else:
+        n_days = len(df)
 
     # 计算最大回撤
     max_drawdown = 0
@@ -157,7 +164,11 @@ def backtest_rsi(df: pd.DataFrame, oversold: int = 30, overbought: int = 70,
         curr = df.iloc[i]
         price = curr['close']
         rsi = curr['RSI6']
-        dt = curr['datetime'].strftime('%Y-%m-%d') if pd.notna(curr.get('datetime')) else str(i)
+        dt_val = curr.get('datetime')
+        if dt_val and pd.notna(dt_val):
+            dt = pd.to_datetime(dt_val).strftime('%Y-%m-%d') if not isinstance(dt_val, str) else str(dt_val)[:10]
+        else:
+            dt = str(i)
 
         # RSI 超卖买入
         if rsi < oversold and not holding:
@@ -187,7 +198,10 @@ def backtest_rsi(df: pd.DataFrame, oversold: int = 30, overbought: int = 70,
 
     total_return = (capital / initial_capital - 1) * 100
     buy_hold_return = (df.iloc[-1]['close'] / df.iloc[0]['close'] - 1) * 100
-    n_days = (df['datetime'].iloc[-1] - df['datetime'].iloc[0]).days if 'datetime' in df.columns else len(df)
+    if 'datetime' in df.columns:
+        n_days = (pd.to_datetime(df['datetime'].iloc[-1]) - pd.to_datetime(df['datetime'].iloc[0])).days
+    else:
+        n_days = len(df)
 
     wins = 0
     for i in range(0, len(trades) - 1, 2):
