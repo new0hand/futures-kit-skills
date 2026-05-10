@@ -105,6 +105,40 @@ def get_realtime_quote(symbol: str) -> dict:
     except Exception as e:
         print(f"[futures_zh_realtime] {symbol} 失败: {e}", file=sys.stderr)
 
+    # 方法3: futures_main_sina（用最近一天的日线当作最新行情，休市也能用）
+    try:
+        from datetime import timedelta
+        end = datetime.now().strftime('%Y%m%d')
+        start = (datetime.now() - timedelta(days=10)).strftime('%Y%m%d')
+        df = ak.futures_main_sina(symbol=symbol, start_date=start, end_date=end)
+        if df is not None and len(df) > 0:
+            row = df.iloc[-1]  # 最后一条 = 最近交易日
+            close = float(row.get('收盘价', 0))
+            settle = float(row.get('动态结算价', 0))
+            prev_close = float(df.iloc[-2]['收盘价']) if len(df) > 1 else close
+            change_pct = ((close - prev_close) / prev_close * 100) if prev_close > 0 else 0
+
+            result = {
+                'symbol': symbol,
+                'name': WATCHLIST.get(symbol, {}).get('name', symbol),
+                'current_price': close,
+                'change_pct': change_pct,
+                'change': close - prev_close,
+                'open': float(row.get('开盘价', 0)),
+                'high': float(row.get('最高价', 0)),
+                'low': float(row.get('最低价', 0)),
+                'volume': int(row.get('成交量', 0)),
+                'amount': 0.0,
+                'hold': int(row.get('持仓量', 0)),
+                'settle': settle,
+                'pre_settle': prev_close,
+                'update_time': f"{row.get('日期', '')} (收盘)",
+            }
+            cache_set('realtime', result, symbol)
+            return result
+    except Exception as e:
+        print(f"[futures_main_sina] {symbol} 失败: {e}", file=sys.stderr)
+
     print(f"获取 {symbol} 实时行情失败（所有数据源均不可用）", file=sys.stderr)
     return None
 
