@@ -1,0 +1,75 @@
+# 期货分析 Skill 配置文件
+
+# 监控品种 - 国内期货（中信期货）
+domestic:
+  watchlist:
+    - symbol: "AU0"       # 沪金主力
+      name: "黄金"
+      exchange: "SHFE"
+    - symbol: "CU0"       # 沪铜主力
+      name: "铜"
+      exchange: "SHFE"
+    - symbol: "LC0"       # 碳酸锂主力
+      name: "碳酸锂"
+      exchange: "GFEX"
+    - symbol: "SC0"       # 原油主力
+      name: "原油"
+      exchange: "INE"
+
+# 监控品种 - 国际期货（DecodeFX 对标品种）
+foreign:
+  watchlist:
+    - symbol: "XAU"       # 伦敦金
+      name: "国际黄金"
+      akshare_code: "伦敦金"
+    - symbol: "HG"        # COMEX铜
+      name: "国际铜"
+      akshare_code: "COMEX铜"
+    - symbol: "WTI"       # WTI原油
+      name: "WTI原油"
+      akshare_code: "WTI原油"
+    - symbol: "BRENT"     # 布伦特原油
+      name: "布伦特原油"
+      akshare_code: "布伦特原油"
+
+# 外汇品种
+forex:
+  watchlist:
+    - symbol: "USDCNY"
+      name: "美元/人民币"
+    - symbol: "EURUSD"
+      name: "欧元/美元"
+    - symbol: "GBPUSD"
+      name: "英镑/美元"
+    - symbol: "USDJPY"
+      name: "美元/日元"
+
+# 回测配置
+backtest:
+  initial_capital: 100000     # 初始资金（元）
+  fee_rate: 0.0001            # 手续费率（万分之一）
+  slippage: 0.0002            # 滑点（万分之二）
+
+# 缓存配置（秒）
+cache:
+  realtime: 60                # 实时行情（国内交易时间短，1分钟缓存）
+  kline_1d: 3600              # 日K线
+  kline_1h: 1800              # 小时K线
+  foreign: 3600               # 国际期货
+  forex: 1800                 # 外汇
+
+# 交易时间（国内期货）
+trading_hours:
+  day: "09:00-15:00"
+  night: "21:00-02:30"        # 夜盘（不同品种收盘时间不同）
+
+# 定时任务
+scheduler:
+  enabled: true
+  data_update_time: "15:30"   # 收盘后半小时更新
+  data_update_interval: 86400
+
+# 输出格式
+output:
+  report_dir: "./reports"
+  format: "markdown"
