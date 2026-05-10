@@ -119,6 +119,26 @@ bash test_all.sh
 | 技术分析 | calc_technical.py + analyze_futures.py |
 | 回测 | backtest.py ma/rsi |
 
+## 定时更新（可选）
+
+如需每天自动增量更新本地数据，配置 crontab：
+
+```bash
+crontab -e
+```
+
+添加以下内容（周一到周五收盘后 16:00 执行）：
+
+```cron
+0 16 * * 1-5 cd ~/futures-kit-skills/futures-kit-skills && python3 local/download_history.py --update >> /tmp/futures_update.log 2>&1
+```
+
+**说明**：
+- 国内期货 15:00 收盘，16:00 更新确保数据源已同步
+- 国际期货和外汇交易时间不同，如需更频繁可改为每小时：`0 * * * 1-5`
+- macOS 需给 cron 授予"完全磁盘访问权限"（系统设置 → 隐私与安全性 → 完全磁盘访问权限 → 添加 `/usr/sbin/cron`）
+- Linux 服务器无需额外权限，直接生效
+
 ## 目录结构
 
 ```
