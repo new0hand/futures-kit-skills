@@ -47,56 +47,66 @@ def get_realtime_quote(symbol: str) -> dict:
     if cached:
         return cached
 
+    # 方法1: futures_zh_spot
     try:
-        # AKShare 获取期货实时行情
         df = ak.futures_zh_spot(symbol=symbol, market="CF", adjust="0")
-        if df is None or len(df) == 0:
-            return None
+        if df is not None and len(df) > 0:
+            row = df.iloc[0]
+            # 计算涨跌幅
+            current = float(row.get('current_price', 0))
+            pre_settle = float(row.get('last_settle_price', 0))
+            change_pct = ((current - pre_settle) / pre_settle * 100) if pre_settle > 0 else 0
+            change = current - pre_settle if pre_settle > 0 else 0
 
-        # 取第一行数据
-        row = df.iloc[0]
-        result = {
-            'symbol': symbol,
-            'name': WATCHLIST.get(symbol, {}).get('name', symbol),
-            'current_price': float(row.get('current_price', row.get('最新价', 0))),
-            'change_pct': float(row.get('change_percent', row.get('涨跌幅', 0))),
-            'change': float(row.get('change', row.get('涨跌额', 0))),
-            'open': float(row.get('open', row.get('今开', 0))),
-            'high': float(row.get('high', row.get('最高', 0))),
-            'low': float(row.get('low', row.get('最低', 0))),
-            'volume': int(row.get('volume', row.get('成交量', 0))),
-            'amount': float(row.get('amount', row.get('成交额', 0))),
-            'hold': int(row.get('hold', row.get('持仓量', 0))),
-            'settle': float(row.get('settle', row.get('结算价', 0))),
-            'pre_settle': float(row.get('pre_settle', row.get('昨结', 0))),
-            'update_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-        }
-
-        # 缓存
-        cache_set('realtime', result, symbol)
-        return result
-
+            result = {
+                'symbol': symbol,
+                'name': WATCHLIST.get(symbol, {}).get('name', symbol),
+                'current_price': current,
+                'change_pct': change_pct,
+                'change': change,
+                'open': float(row.get('open', 0)),
+                'high': float(row.get('high', 0)),
+                'low': float(row.get('low', 0)),
+                'volume': int(row.get('volume', 0)),
+                'amount': 0.0,
+                'hold': int(row.get('hold', 0)),
+                'settle': 0.0,
+                'pre_settle': pre_settle,
+                'update_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            }
+            cache_set('realtime', result, symbol)
+            return result
     except Exception as e:
-        # 尝试备用方式：通过 futures_zh_realtime 获取
-        try:
-            df = ak.futures_zh_realtime(symbol=symbol)
-            if df is not None and len(df) > 0:
-                row = df.iloc[0]
-                result = {
-                    'symbol': symbol,
-                    'name': WATCHLIST.get(symbol, {}).get('name', symbol),
-                    'current_price': float(row.get('current_price', row.get('最新价', 0))),
-                    'change_pct': float(row.get('涨跌幅', 0)),
-                    'volume': int(row.get('成交量', 0)),
-                    'hold': int(row.get('持仓量', 0)),
-                    'update_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                }
-                cache_set('realtime', result, symbol)
-                return result
-        except Exception:
-            pass
-        print(f"获取 {symbol} 实时行情失败: {e}", file=sys.stderr)
-        return None
+        print(f"[futures_zh_spot] {symbol} 失败: {e}", file=sys.stderr)
+
+    # 方法2: futures_zh_realtime
+    try:
+        df = ak.futures_zh_realtime(symbol=symbol)
+        if df is not None and len(df) > 0:
+            row = df.iloc[0]
+            result = {
+                'symbol': symbol,
+                'name': WATCHLIST.get(symbol, {}).get('name', symbol),
+                'current_price': float(row.get('current_price', row.get('最新价', 0))),
+                'change_pct': float(row.get('涨跌幅', 0)),
+                'change': 0.0,
+                'open': float(row.get('open', row.get('今开', 0))),
+                'high': float(row.get('high', row.get('最高', 0))),
+                'low': float(row.get('low', row.get('最低', 0))),
+                'volume': int(row.get('volume', row.get('成交量', 0))),
+                'amount': 0.0,
+                'hold': int(row.get('hold', row.get('持仓量', 0))),
+                'settle': 0.0,
+                'pre_settle': 0.0,
+                'update_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+            }
+            cache_set('realtime', result, symbol)
+            return result
+    except Exception as e:
+        print(f"[futures_zh_realtime] {symbol} 失败: {e}", file=sys.stderr)
+
+    print(f"获取 {symbol} 实时行情失败（所有数据源均不可用）", file=sys.stderr)
+    return None
 
 
 def format_single(data: dict) -> str:
