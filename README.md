@@ -33,18 +33,44 @@
 | GBPUSD | 英镑/美元 |
 | USDJPY | 美元/日元 |
 
-## 安装
+## Hermes 部署
 
-### 依赖
+### 安装 Skill
 
 ```bash
-pip install akshare pandas numpy pyarrow duckdb
+# 安装 Python 依赖
+pip3 install akshare pandas numpy pyarrow duckdb
+
+# 从 GitHub 安装 Skill 到 Hermes
+hermes skills install new0hand/futures-kit-skills/futures-kit-skills --force
 ```
 
-### Hermes Skill 安装
+### 下载历史数据（可选）
 
 ```bash
-hermes skills install ./futures-kit-skills
+# 克隆仓库
+git clone https://github.com/new0hand/futures-kit-skills.git
+cd futures-kit-skills/futures-kit-skills/local
+
+# 下载全部品种两年数据
+python3 download_history.py
+
+# 验证
+cd ../..
+bash test_all.sh
+```
+
+### 更新 Skill
+
+```bash
+hermes skills install new0hand/futures-kit-skills/futures-kit-skills --force
+```
+
+### 微信网关
+
+```bash
+hermes gateway setup
+hermes pairing approve weixin XXXX
 ```
 
 ## 快速使用
@@ -53,35 +79,35 @@ hermes skills install ./futures-kit-skills
 cd futures-kit-skills/scripts
 
 # 国内期货
-python get_domestic_realtime.py AU0         # 实时行情
-python get_domestic_kline.py AU0 --days 60  # 日K线
+python3 get_domestic_realtime.py AU0         # 实时行情
+python3 get_domestic_kline.py AU0 --days 60  # 日K线
 
 # 国际期货
-python get_foreign_kline.py XAU --days 365  # 伦敦金K线
+python3 get_foreign_kline.py XAU --days 365  # 伦敦金K线
 
 # 外汇
-python get_forex.py USDCNY --days 365       # 美元人民币
+python3 get_forex.py USDCNY --days 365       # 美元人民币
 
 # 技术分析
-python calc_technical.py AU0                # 技术指标
-python analyze_futures.py AU0               # 综合分析
+python3 calc_technical.py AU0                # 技术指标
+python3 analyze_futures.py AU0               # 综合分析
 
 # 策略回测
-python backtest.py ma AU0 --days 500        # MA均线回测
-python backtest.py rsi CU0 --days 365       # RSI回测
+python3 backtest.py ma AU0 --days 500        # MA均线回测
+python3 backtest.py rsi CU0 --days 365       # RSI回测
 ```
 
 ### 本地数据
 
 ```bash
 # 下载全部品种两年数据
-python local/download_history.py
+python3 local/download_history.py
 
 # 增量更新
-python local/download_history.py --update
+python3 local/download_history.py --update
 
 # 查询本地数据
-python local/query_data.py AU0 --max        # 查历史最高价
+python3 local/query_data.py AU0 --max        # 查历史最高价
 ```
 
 ## 数据源
@@ -93,11 +119,11 @@ python local/query_data.py AU0 --max        # 查历史最高价
 | 国内期货行情 | 新浪财经 | 免费公开，爬虫接口 |
 | 国内期货K线 | 新浪财经 | 日K/分钟K均支持 |
 | 国际期货K线 | 新浪/东方财富 | 主要外盘品种 |
-| 外汇数据 | 中国银行/外管局 | 中间价 |
+| 外汇数据 | 东方财富/中国银行 | 双源自动回退 |
 
 **注意**：
 - AKShare 是爬虫接口，建议请求间隔 0.5-1 秒
-- 非交易时间查实时行情会拿到上个交易日收盘数据
+- 非交易时间查实时行情会提示数据不可用，日K线和回测不受影响
 - 碳酸锂(LC)于 2023 年 7 月上市，历史数据不足两年
 
 ## 测试
@@ -108,16 +134,58 @@ bash test_all.sh
 
 测试项包括：环境检查(4项)、缓存管理(1项)、国内实时行情(3项)、国内K线(4项)、国际K线(4项)、外汇(4项)、技术指标(2项)、综合分析(2项)、回测(3项)、本地数据(1项)，共 28 项。
 
-## 与客户需求对应
+## Hermes 对话测试
 
-| 客户需求 | 实现方案 |
-|---------|---------|
-| 国内期货：金铜碳酸锂原油 | AKShare 国内期货接口，AU0/CU0/LC0/SC0 |
-| 国外期货：金铜油 | AKShare 国际期货接口，XAU/HG/WTI |
-| 外汇 | AKShare 外汇接口，USDCNY/EURUSD 等 |
-| 拉两年数据 | download_history.py --days 730 |
-| 技术分析 | calc_technical.py + analyze_futures.py |
-| 回测 | backtest.py ma/rsi |
+安装完成后，在 Hermes 对话中（微信或终端）发送以下提示词验证功能：
+
+### 国内期货行情
+
+| 提示词 | 对应功能 | 耗时 |
+|--------|---------|------|
+| 查一下黄金期货现在多少钱 | 实时行情 `get_domestic_realtime.py AU0` | 1-2秒 |
+| 看看国内期货行情 | 全部监控品种 `get_domestic_realtime.py --all` | 2-3秒 |
+| 沪铜最近60天的K线 | 日K线 `get_domestic_kline.py CU0 --days 60` | 1-2秒 |
+| 原油5分钟K线 | 分钟K线 `get_domestic_kline.py SC0 -i 5` | 1-2秒 |
+
+### 国际期货
+
+| 提示词 | 对应功能 | 耗时 |
+|--------|---------|------|
+| 伦敦金最近一年的走势 | 国际金 `get_foreign_kline.py XAU --days 365` | 1-2秒 |
+| COMEX铜最近半年K线 | 国际铜 `get_foreign_kline.py HG --days 180` | 1-2秒 |
+| WTI原油最近一年走势 | 原油 `get_foreign_kline.py WTI --days 365` | 1-2秒 |
+
+### 外汇
+
+| 提示词 | 对应功能 | 耗时 |
+|--------|---------|------|
+| 美元兑人民币最近一年走势 | 外汇 `get_forex.py USDCNY --days 365` | 1-2秒 |
+| 欧元兑美元最近半年 | 外汇 `get_forex.py EURUSD --days 180` | 1-2秒 |
+
+### 技术分析
+
+| 提示词 | 对应功能 | 耗时 |
+|--------|---------|------|
+| 分析一下黄金期货的技术指标 | 技术指标 `calc_technical.py AU0` | 1-2秒 |
+| 帮我综合分析一下沪铜 | 综合评分 `analyze_futures.py CU0` | 2-3秒 |
+| 伦敦金技术面怎么样 | 国际期货指标 `calc_technical.py XAU` | 1-2秒 |
+
+### 策略回测
+
+| 提示词 | 对应功能 | 耗时 |
+|--------|---------|------|
+| 帮我回测黄金的均线策略，最近两年 | MA回测 `backtest.py ma AU0 --days 730` | 1-2秒 |
+| 用RSI策略回测一下沪铜 | RSI回测 `backtest.py rsi CU0 --days 365` | 1-2秒 |
+| 回测伦敦金的MA策略 | 国际期货回测 `backtest.py ma XAU --days 365` | 1-2秒 |
+
+### 本地数据
+
+| 提示词 | 对应功能 | 耗时 |
+|--------|---------|------|
+| 黄金期货历史最高价是哪天 | 本地查询 `local/query_data.py AU0 --max` | 秒级 |
+| 下载全部品种两年数据 | 批量下载 `local/download_history.py` | 30-60秒 |
+
+> **注意**：实时行情仅在交易时间可用（国内期货周一到周五 9:00-15:00，夜盘 21:00-次日2:30）。非交易时间查询会提示数据不可用，日K线和回测不受影响。
 
 ## 定时更新（可选）
 
