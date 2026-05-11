@@ -99,7 +99,10 @@ def get_foreign_kline(symbol: str, days: int = 365) -> pd.DataFrame:
     # 检查缓存
     cached = cache_get('foreign', symbol, days)
     if cached:
-        return pd.DataFrame(cached)
+        df = pd.DataFrame(cached)
+        if 'datetime' in df.columns:
+            df['datetime'] = pd.to_datetime(df['datetime'])
+        return df
 
     info = FOREIGN_SYMBOLS[symbol]
     akshare_code = info['akshare_code']

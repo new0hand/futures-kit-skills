@@ -86,7 +86,10 @@ def get_forex_data(symbol: str, days: int = 365) -> pd.DataFrame:
     # 检查缓存
     cached = cache_get('forex', symbol, days)
     if cached:
-        return pd.DataFrame(cached)
+        df = pd.DataFrame(cached)
+        if 'datetime' in df.columns:
+            df['datetime'] = pd.to_datetime(df['datetime'])
+        return df
 
     info = FOREX_SYMBOLS[symbol]
     em_symbol = info['em_symbol']

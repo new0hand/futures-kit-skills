@@ -65,7 +65,10 @@ def get_kline(symbol: str, interval: str = 'daily', days: int = 60,
     cache_key_type = 'kline_1d' if interval == 'daily' else 'kline_min'
     cached = cache_get(cache_key_type, symbol, interval, days)
     if cached:
-        return pd.DataFrame(cached)
+        df = pd.DataFrame(cached)
+        if 'datetime' in df.columns:
+            df['datetime'] = pd.to_datetime(df['datetime'])
+        return df
 
     try:
         if interval == 'daily':
