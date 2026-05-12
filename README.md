@@ -195,15 +195,18 @@ bash test_all.sh
 crontab -e
 ```
 
-添加以下内容（周一到周五收盘后 16:00 执行）：
+添加以下内容（北京时间 18:00，根据你的时区换算）：
 
-```cron
-0 16 * * 1-5 cd ~/futures-kit-skills/futures-kit-skills && python3 local/download_history.py --update >> /tmp/futures_update.log 2>&1
+```bash
+# 北京时间（UTC+8）：
+0 18 * * 1-5 cd ~/.hermes/skills/futures-kit-skills/local && python3 download_history.py --update >> /tmp/futures_update.log 2>&1
+
+# 夏威夷时间（UTC-10，北京18:00 = 夏威夷00:00）：
+0 0 * * 1-5 cd ~/.hermes/skills/futures-kit-skills/local && python3 download_history.py --update >> /tmp/futures_update.log 2>&1
 ```
 
 **说明**：
-- 国内期货 15:00 收盘，16:00 更新确保数据源已同步
-- 国际期货和外汇交易时间不同，如需更频繁可改为每小时：`0 * * * 1-5`
+- 国内期货 15:00 收盘（夜盘归入下一交易日），国际期货/外汇日 K 按前一日结算，18:00 数据源均已更新
 - macOS 需给 cron 授予"完全磁盘访问权限"（系统设置 → 隐私与安全性 → 完全磁盘访问权限 → 添加 `/usr/sbin/cron`）
 - Linux 服务器无需额外权限，直接生效
 
