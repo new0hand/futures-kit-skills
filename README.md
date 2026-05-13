@@ -1,8 +1,8 @@
-# futures-kit-skills
+# futures-kit
 
 期货与外汇分析工具包，基于 AKShare 免费数据接口，为 Hermes Agent 提供国内外期货和外汇的行情查询、技术分析、策略回测能力。
 
-**GitHub**: [new0hand/futures-kit-skills](https://github.com/new0hand/futures-kit-skills)
+**GitHub**: [new0hand/futures-kit](https://github.com/new0hand/futures-kit)
 
 ## 支持品种
 
@@ -42,15 +42,15 @@
 pip3 install akshare pandas numpy pyarrow duckdb
 
 # 从 GitHub 安装 Skill 到 Hermes
-hermes skills install new0hand/futures-kit-skills/futures-kit-skills --force
+hermes skills install new0hand/futures-kit/futures-kit-skills --force
 ```
 
 ### 下载历史数据（可选）
 
 ```bash
 # 克隆仓库
-git clone https://github.com/new0hand/futures-kit-skills.git
-cd futures-kit-skills/futures-kit-skills/local
+git clone https://github.com/new0hand/futures-kit.git
+cd futures-kit/futures-kit-skills/local
 
 # 下载全部品种两年数据
 python3 download_history.py
@@ -63,7 +63,7 @@ bash test_all.sh
 ### 更新 Skill
 
 ```bash
-hermes skills install new0hand/futures-kit-skills/futures-kit-skills --force
+hermes skills install new0hand/futures-kit/futures-kit-skills --force
 ```
 
 ### 微信网关
@@ -213,7 +213,7 @@ crontab -e
 ## 目录结构
 
 ```
-futures-kit-skills/
+futures-kit/
 ├── README.md                        # 本文件
 ├── test_all.sh                      # 全量测试（28项）
 ├── .gitignore
